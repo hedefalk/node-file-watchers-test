@@ -33,6 +33,7 @@
     "jasmine-focused": "^1.0.7",
     "loglevel": "^1.4.0",
     "pathwatcher": "^6.5.0",
-    "temp": "^0.8.3"
+    "temp": "^0.8.3",
+    "watchr": "^2.4.13"
   }
 }

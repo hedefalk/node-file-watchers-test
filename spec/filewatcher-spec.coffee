@@ -1,10 +1,12 @@
 
 temp = (require 'temp').track()
 path = require 'path'
+
 chokidar = require 'chokidar'
 Pathwatcher = require 'pathwatcher'
 gaze = require 'gaze'
 fs = require 'fs'
+watchr = require 'watchr'
 
 loglevel = require 'loglevel'
 loglevel.setDefaultLevel('trace')
@@ -49,43 +51,68 @@ pathWatcher = (spy, expectedFile) ->
     spy()
     pathwatcher.close()
   )
-
-describe 'PathWatcher', ->
-  afterEach ->
-    temp.cleanupSync()
-    
-  it "should notice absolute paths if relativized, even from temp", ->
-    testWatcher(pathWatcher)(temp.path({suffix: '.txt'}))
-
-  it "should notice absolute paths if relativized", ->
-    testWatcher(pathWatcher)(path.join process.cwd(), 'foo')
   
+watchrWatcher = (spy, expectedFile) ->
+  w = watchr.watch(
+    path: expectedFile
+    listeners:
+      change: (changeType,filePath,fileCurrentStat,filePreviousStat) ->
+        spy()
+    next: (err, watchers) ->
+      if err
+        log.error err
+      else
+        if watchers
+          setTimeout (-> watchers[0].close()), 60 * 1000
+  )
+
+        
 describe 'Chokidar', ->
   afterEach ->
     temp.cleanupSync()
     
-  it "should notice absolute paths if relativized, even from temp", ->
+  it "should notice a file added from temp", ->
     testWatcher(chokidarWatcher)(temp.path({suffix: '.txt'}))
-
-  it "should notice absolute paths if relativized", ->
+    
+  it "should notice a file added", ->
     testWatcher(chokidarWatcher)(path.join process.cwd(), 'foo')
+      
+describe 'PathWatcher', ->
+  afterEach ->
+    temp.cleanupSync()
+    
+  it "should notice a file added from temp", ->
+    testWatcher(pathWatcher)(temp.path({suffix: '.txt'}))
+
+  it "should notice a file added", ->
+    testWatcher(pathWatcher)(path.join process.cwd(), 'foo')
   
 describe 'fs.watch', ->
   afterEach ->
     temp.cleanupSync()
     
-  it "should notice absolute paths if relativized, even from temp", ->
+  it "should notice a file added from temp", ->
     testWatcher(fsWatcher)(temp.path({suffix: '.txt'}))
 
-  it "should notice absolute paths if relativized", ->
+  it "should notice a file added", ->
     testWatcher(fsWatcher)(path.join process.cwd(), 'foo')
   
 describe 'Gaze', ->
   afterEach ->
     temp.cleanupSync()
     
-  it "should notice absolute paths if relativized, even from temp", ->
+  it "should notice a file added from temp", ->
     testWatcher(gazeWatcher)(temp.path({suffix: '.txt'}))
 
-  it "should notice absolute paths if relativized", ->
+  it "should notice a file added", ->
     testWatcher(gazeWatcher)(path.join process.cwd(), 'foo')
+  
+describe 'watchr', ->
+  afterEach ->
+    temp.cleanupSync()
+    
+  it "should notice a file added from temp", ->
+    testWatcher(watchrWatcher)(temp.path({suffix: '.txt'}))
+
+  it "should notice a file added", ->
+    testWatcher(watchrWatcher)(path.join process.cwd(), 'foo')
